@@ -14,31 +14,31 @@ Our results suggest that LPs, especially smaller LPs, are constrained by capital
 
 As previously mentioned, approximately $4.4 billion of liquidity is currently accessible through Uniswap V3 on Ethereum mainnet. However, most pools are very small, with a handful of top liquidity pools capturing the lion's share of that value:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/uniswap_mainnet_pools.png)
+![](./img/uniswap_mainnet_pools.png)
 
 To begin exploring the wealth of on-chain data, we retrieved the price and liquidity history of the pool with the highest TVL (ETH/USDC 0.3%). Because the state of the pool is always known, by keeping track of when new liquidity positions are minted, updated, or burned, we can straightforwardly interrogate the data to answer a number of basic questions.
 
 For example, at the time of this post's writing, the ETH/USDC 0.3% pool on mainnet has around 3.4k open liquidity positions. Taking a look at the size of these positions (as measured by the market value of added collateral at the time(s) liquidity was minted or added), it appears that the majority of liquidity positions are worth 3 to 5 figures:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_position_sizes_mainnetonly.png)
+![](./img/ethusdc_position_sizes_mainnetonly.png)
 
 In fact, out of these 3.4k positions, the vast majority (close to 80%) were minted with less than 10k of liquidity. However, the bulk of the liquidity in the pool (in dollar terms) resides in the remaining 20% of positions, some of which are individually worth millions of dollars each.
 
 Notably, as of the time of this post's writing, only around 2k of these 3.4k open liquidity positions are actually in range---meaning that 41% of all Uniswap V3 positions on the largest liquidity pool are earning no trading fees whatsoever! More generally, we can ask: at each timepoint since the pool was created, what proportion of liquidity positions are active (*i.e.,* the price of ETH is inside the active range specified by the position's minter)? The plot below shows the time course of this position over the last eight months.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_positions_active_mainnetonly.png)
+![](./img/ethusdc_positions_active_mainnetonly.png)
 
 Immediately, we notice that in the first week of the pool's existence, the majority of liquidity positions are in range; however, over time, the proportion of in-range positions seems to fall dramatically, stabilizing at slightly above 50%. This result is naively quite unexpected, as liquidity which is completely out of range is not generating any fees for its owner, and the capital locked in those positions could be far better used elsewhere.
 
 One natural extension of this analysis is to see how the proportion of in-range positions varies with the price of ETH. In the plot below, these two time series have been overlaid on the same plot (with an arbitrary scaling factor of 0.01 applied to the ETH price for plotting):
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/eth_price.png)
+![](./img/eth_price.png)
 
 Periods of sudden price movement, such as the timepoints at the beginning of September 2021, appear to be associated with sharp reductions in the proportion of active positions, as expected. In addition, the run-up in price from October to mid-November appears to be correlated with a consistent decline in the proportion of active positions, which gradually reversed as the price of ETH fell from its all-time high over the following 3 months. Taken together, these data would appear to suggest that a great deal of the variation in the proportion of active positions is coming the price drifting in and out of range of "old" liquidity positions.
 
 Another natural question is to ask what proportion of liquidity *in dollar terms* is in-range at any given time. Because the gas cost of modifying a position is static regardless of size, it is intuitive to expect that smaller positions end up out of range more often than larger positions. Consequently, examining the proportion of active positions alone may understate the degree to which the volume of liquidity in the pool is utilized. The results of this calculation are shown below.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_positions_active_weightadj_mainnetonly.png)
+![](./img/ethusdc_positions_active_weightadj_mainnetonly.png)
 
 We performed this analysis by valuing liquidity at the market price of ETH at the time that liquidity was minted or added to a given position. This is not a perfect approximation, as the price of liquidity positions varies continuously over time; however, we believe it is a reasonable simplification to make.
 
@@ -48,13 +48,13 @@ Although the situation appears to be improved, there are several important point
 
 To further understand why positions become or stay out of range, we can directly examine the relationship between different variables, such as a liquidity position's age or value, and the propensity for an currently open liquidity position to be in or out of range.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_age_vs_activity.png)
+![](./img/ethusdc_age_vs_activity.png)
 
 The relationship between a position's age and its likelihood of being in range is admittedly fairly confounded by month-to-month variation in the price of ETH. For example, if the price increases and then decreases, then an older position minted at the original price may go out of range on the uptrend but end up back in range after the downtrend. However, if the price of ETH continues to steadily trend upward or downward over the course of multiple years, the number of out-of-range positions minted months or years ago will steadily accumulate.
 
 However, the relationship with position size is considerably stronger:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_size_vs_activity.png)
+![](./img/ethusdc_size_vs_activity.png)
 
 Aside from an 'edge effect' at the very rightmost end of the graph (due to extreme data scarcity; there is a single [very large position](https://opensea.io/assets/0xc36442b4a4522e871399cd717abdd847ab11fe88/179646) out of range worth 10 million dollars), larger liquidity positions are far more likely to be in range, consistent with our prior observations that the proportion of total liquidity in range is far greater than the proportion of distinct positions in range.
 
@@ -64,11 +64,11 @@ As such, it is informative to examine the prevalence and impact on JIT liquidity
 
 Using this criterion, we identify around 3,000 JIT liquidity positions in the history of the ETH/USDC 0.3% pool (around 6% of all minted positions). To validate this classification, we examine the extent to which the following assumptions hold: First, JIT positions should be very narrowly targeted, to allow the minter to capture as much of the trading fees generated by a target swap as possible. Second, JIT positions should be very *efficient* in generating fees relative to typical liquidity positions and with respect to the amount of time they remain active. Below, we show the distributions of the corresponding metrics (on a per-liquidity position basis).
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_fee_time_tickrange.png)
+![](./img/ethusdc_fee_time_tickrange.png)
 
 As expected, all of the single-block liquidity positions are targeted at a very narrow price range.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_fee_time_jit.png)
+![](./img/ethusdc_fee_time_jit.png)
 
 Similarly, all of the single-block liquidity positions are extremely efficient at generating fees. Together, these results suggest that our putative classification of single-block liquidity positions as JIT positions is accurate. Furthermore, the distribution of fees per active block shows the extent to which JIT positions are far more effective for fee generation than normal liquidity provisioning; indeed, the distribution of JIT fee efficiency falls almost completely outside the distribution of non-JIT fee efficiency.
 
@@ -78,7 +78,7 @@ Perhaps thankfully, the proportion of total fees accruing to JIT liquidity conti
 
 The previous analyses have focused solely on ETH/USDC liquidity within a single pool charging a 0.3% swap fee. However, on Uniswap V3, the liquidity for the ETH/USDC token pair is actually split between two different pools, one charging a 0.3% swap fee and another one charging a 0.05% swap fee. As we can see, although the TVL of the 0.3% fee tier is higher, the volume of swaps executed via the 0.05% fee tier liquidity is much greater:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/uniswap_mainnet_pools_24hvolume.png)
+![](./img/uniswap_mainnet_pools_24hvolume.png)
 
 Although it may not be immediately apparent why liquidity is fractured across multiple fee tiers, a comparison to standard order books renders the utility clear. The fee charged by a given liquidity pool is roughly analogous to the bid-ask spread charged by a traditional market maker on an order book. The depth of liquidity should be greatest close to midpoint of the order book, where the bid-ask spread is minimized. However, as you proceed deeper into the order book, the liquidity falls off and the effective spread captured by a market maker is typically greater.
 
@@ -86,17 +86,17 @@ Due to the unique nature of constant function liquidity and concentrated liquidi
 
 The distribution of liquidity across the 0.3% and 0.05% fee pools appears to be consistent with these expectations:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_mainnet_density.png)
+![](./img/ethusdc_mainnet_density.png)
 
 In the above plot, the vertical red line represents the current ETH price. As expected, the depth of liquidity drops off at increasingly distant prices, and the 0.05% fee tier liquidity is typically minted to a tighter range than the 0.3% fee tier liquidity. In practice, what this means is that most swaps will be routed through the 0.05% fee liquidity; however, in conditions of market volatility and movement, especially if large swaps are made or if the price moves substantially upwards or downward, the 0.3% fee liquidity will begin to receive an increasing share of the trading fees.
 
 Beyond the concentration of liquidity at a a tighter range, the size of individual liquidity positions also appears to be slightly higher in the median case for liquidity positions minted to the 0.05% tier pool:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_mainnet_position_values_comparison.png)
+![](./img/ethusdc_mainnet_position_values_comparison.png)
 
 This observation is interesting in light of the fact that the 0.05% pool has much lower TVL than the 0.3% pool, suggesting that liquidity provisioning in the 0.05% pool is somewhat more dominated by large players. That being said, however, even large players should prefer to spread out their liquidity over several smaller positions, to avoid sharp threshold effects where sizable chunks of their liquidity become completely active or inactive as the instantaneous price crosses a boundary point. The existence of these boundary effects is clearer when examining the liquidity distribution on the 0.05% pool alone:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_mainnet_density_rest.png)
+![](./img/ethusdc_mainnet_density_rest.png)
 
 There is a very clear dropoff in available liquidity when the price of ETH falls under $2,350 or rises abouve $3,000, largely attributable to the fact that a single liquidity position accounts for the a large proportion of the liquidity in the rectangular 'chunk' in the middle of the distribution. It is, of course, possible in principle that a liquidity distribution with sharp thresholds past certain prices might be preferred for certain assets. However, the existence of these threshold effects even within the ETH/USDC liquidity distribution is suggestive of inefficiencies in the existing LP system. Conceivably, were liquidity positions more easily manageable (*e.g.,* with lower gas fees for adjusting positions), the resulting distribution of liquidity across ETH prices would exhibit a smoother curve as liquidity providers incorporate more sophisticated strategies with multiple, frequently changing positions.
 
@@ -108,11 +108,11 @@ There are, of course, many intrinsic differences between the mainnet and Polygon
 
 In general, the Uniswap TVLs are much lower on Polygon than on Ethereum mainnet:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/uniswap_polygon_pools.png)
+![](./img/uniswap_polygon_pools.png)
 
 Interestingly, on Polygon, the 0.05% fee tier pool for ETH/USDC leads in both TVL and 24-hour volume traded, as opposed to Ethereum mainnet, where the 0.05% pool has higher volume but the 0.3% pool has higher TVL. The reason for this discrepancy is not immediately clear. One plausible explanation (among many) is that swaps on Polygon Uniswap are smaller than swaps on Ethereum mainnet:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_hourly_vol.png)
+![](./img/ethusdc_hourly_vol.png)
 
 This difference may originate in part from Polygon users being less wealthy and in part from the fact that preexisting liquidity on mainnet is much deeper. Because sufficiently large trades will naturally route through both lower and higher fee tier liquidity pools for superior execution, small swap sizes on Polygon might disproportionately favor the 0.05% pool for returns on liquidity provisioning, leading to the dominance of the 0.05% pool in both TVL and swap volume. However, in the absence of additional information, it is not clear to what extent this is an accurate characterization of the reasoning behind liquidity provider's choices. For simplicity, we will consider only the Polygon 0.05% pool in subsequent analyses.
 
@@ -120,13 +120,13 @@ If liquidity providers' ability to readjust out-of-range positions is limited by
 
 This is *weakly* supported by the data:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_positions_active.png)
+![](./img/ethusdc_positions_active.png)
 
 Looking first at the proportion of individual positions in range at any given time (without weighting for position size), the Polygon 0.05% pool's liquidity positions are in range roughly as often as positions on the 0.3% mainnet pool and noticeably more than positions on the 0.05% mainnet pool. Several caveats are worth noting. First, there is clearly very high variability in this metric in the first several weeks immediately following deployment on Polygon. Second, because the Polygon deployment has only been active for two months, positions have not yet had as much time as the mainnet Uniswap pools to drift out of range, especially given the relatively range-bound price action of ETH in the first part of 2022.
 
 The difference between the mainnet and Polygon deployments is also quite modest after weighting liquidity positions by size:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_positions_active_weightadj.png)
+![](./img/ethusdc_positions_active_weightadj.png)
 
 As with positions on Ethereum mainnet, a much higher fraction of total liquidity value on Polygon is in range as compared to the fraction of individual positions in range at any given time, suggesting that large positions are being actively managed to avoid staying out of range for prolonged periods of time. However, again, the dearth of data renders it difficult to draw strong conclusions.
 
