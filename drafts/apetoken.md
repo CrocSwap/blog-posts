@@ -124,11 +124,9 @@ The above plot reveals an interesting dynamic. Overall, we see that the proporti
 
 Liquidity providers naturally do not want their positions to stray out of range and should therefore set the upper and lower bounds on newly minted liquidity positions to reflect expectations about future price movements. These expectations may naturally change over time as liquidity providers, both new and existing, observe fluctuations in the price of ApeCoin. If we examine the upper bounds of newly minted liquidity positions over time, we can see that this is indeed the case:
 
-![](./img/ape_tick_upper.png)
 
 In particular, we see that as the price of ApeCoin increases in the latter half of the 24-hour period, the upper bounds of newly minted positions increase out of proportion with the appreciation of ApeCoin (*i.e.,* the upper bounds is not always just a constant distance away from the current ApeCoin price). This suggests that as liquidity providers began to observe ApeCoin's upward price action, they also made upward revisions to their expectations of future price growth. A similar trend is observable with the lower bounds of newly minted positions:
 
-![](./img/ape_tick_lower.png)
 
 By the end of the first 24 hours, the lowest of new liquidity positions' lower bounds have begun to overlap with the actual prices of ApeCoin 18-24 hours prior!
 
