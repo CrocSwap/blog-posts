@@ -102,7 +102,7 @@ Notably, the worst case of IL only loses 15% of the initial portfolio value, as 
 
 ![](./img/ape_hypo_returns.png)
 
-If all liquidity providers had provided ambient liquidity, a full 86% of positions would be in profit from the balance of fees vs. IL alone! This result strongly suggests that liquidity providers did not accurately estimate the extent of future price volatility or appreciation and therefore dramatically undersized the range of their liquidity positions.
+If all liquidity providers had provided ambient liquidity, a full 95% of positions would be in profit from the balance of fees vs. IL alone! This result strongly suggests that liquidity providers did not accurately estimate the extent of future price volatility or appreciation and therefore dramatically undersized the range of their liquidity positions.
 
 ## Positions going out of range
 
