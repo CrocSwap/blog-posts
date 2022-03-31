@@ -1,10 +1,14 @@
+# A Study on Apes: Profits vs. Impermanent Losses
+
+This is the first in a series of posts by [0xfbifemboy](https://twitter.com/0xfbifemboy) on the performance of concentrated liquidity.
+
 ## Introduction
 
 On March 17, 2022, Yuga Labs, the owner of the Bored Ape Yacht Club (BAYC) brand and related derivatives, [launched](https://crypto.com/product-news/apecoin-token-feature) ApeCoin ($APE). Large quantities of ApeCoin were claimable for free by owners of BAYC and BAYC-related NFTs; at the same time, liquidity for the token was added to major exchanges such as FTX. Although ApeCoin has no current functionality, it was the subject of considerable interest from traders, and after an initial post-launch slump, the token price increased by up to 2.5x within the subsequent 24 hours to a fully diluted valuation well exceeding $15 billion.
 
 Although most ApeCoin trading volume occurred on centralized exchanges such as FTX and Binance, a considerable amount also occurred on-chain, primarily via Uniswap on Ethereum mainnet. In this post, we report the results of a rudimentary analysis of the first 24 hours of on-chain trading data with a focus on liquidity providers' profits. Liquidity providers on Uniswap V3 derive revenue from collection of trading fees (a fixed percent of all swap volume); however, as prices fluctuate, they also suffer from impermanent loss (IL). Whether liquidity providers are in profit *relative to a portfolio where they hold the paired assets directly* therefore depends on the balance between trading fees and impermanent loss.
 
-We show that although over 86% of ApeCoin liquidity positions on Uniswap V3 were in profits compared to their invested balances, the majority of liquidity positions incurred impermanent losses which outweighed their collected trading fees, suggesting that the typical liquidity provider would have been better off simply holding APE directly. Our results suggest that liquidity providers systematically underestimated the volatility of ApeCoin prices, leading them to undersize their position ranges and leading to substantial levels of impermanent loss.
+We show that although over 86% of ApeCoin liquidity positions on Uniswap V3 were in profits compared to their invested balances, the majority of liquidity positions incurred impermanent losses which outweighed their collected trading fees, suggesting that the typical liquidity provider would have been better off simply holding APE directly, at least in the first 24 hours of ApeCoin trading. Our results suggest that liquidity providers systematically underestimated the volatility of ApeCoin prices, leading them to undersize their position ranges and leading to substantial levels of impermanent loss.
 
 ## Initial observations
 
@@ -12,7 +16,7 @@ Immediately subsequent to the launch of ApeCoin on centralized exchanges, liquid
 
 ![](./img/ape_price.png)
 
-Aside from some heightened volatility within the first hour of trading (likely due to severe lack of liquidity), the price of ApeCoin was been very consistent across both the APE/ETH and APE/USDC liquidity pools: not too surprising, as by default Uniswap will route swaps through multiple pools for the best execution.
+Aside from some heightened volatility within the first hour of trading (likely due to severe lack of liquidity), the price of ApeCoin has been very consistent across both the APE/ETH and APE/USDC liquidity pools: not too surprising, as by default Uniswap will route swaps through multiple pools for the best execution.
 
 Notably, both the APE/ETH and APE/USDC liquidity pools on Uniswap charge 1% fees—higher than typical (for example, ETH/LOOKS charges 0.3%), but not unprecedented (SHIB and other 'meme' tokens also tend to have 1% fee tiers). Given the strong trading interest in ApeCoin, this was a very appealing incentive for users to step in and add liquidity to reap trading fees. Correspondingly, the number of open liquidity positions on Uniswap skyrocketed in the first 12 hours of trading, eventually plateauing at around 650 positions:
 
@@ -46,7 +50,7 @@ As we previously observed, the price of ApeCoin increased substantially in the f
 
 To do so, we estimated the impermament loss incurred by each liquidity position. Each individual liquidity position can have its liquidity increased and decreased multiple times between the minting and burning transactions, meaning that we have to very careful to precisely define impermanent loss. For each liquidity position, we tabulated all of the liquidity addition events and tracked how many tokens of each type were added. We considered impermanent loss beginning from the time the liquidity position was minted and ending either at the time the liquidity position was burned, if it was burned within the first 24 hours post-launch, or if not, then at the end of the 24 hours.
 
-To define our baseline counterfactual, where the liquidity provider keeps their tokens in their wallet and never mints a position, we considered the following question: For each liquidity addition event, suppose that the liquidity provider keeps the same quantities of tokens (APE, ETH, and/or USDC), but never mints or adds them to a liquidity position. What would be their portfolio value at the end of the evaluation period? Next, we calculated the exact market value of the liquidity position at the end of the evaluation period, which is fully determined by market prices, the range of their liquidity position, and the tokens supplied. Finally, we took the difference of their hypothetical counterfactual portfolio value without liquidity minting and their actual portfolio value at the end of the evaluation period, and divided this difference by the total dollar value of liquidity they supplied. This ratio is shown below.
+First, to define our baseline counterfactual, where the liquidity provider keeps their tokens in their wallet and never mints a position, we considered the following question: For each liquidity addition event, suppose that the liquidity provider keeps the same quantities of tokens (APE, ETH, and/or USDC), but never mints or adds them to a liquidity position. What would be their portfolio value at the end of the evaluation period? This can be answered by simply multiplying token quantities by market prices at the appropriate timepoint. Next, we calculated the exact market value of the liquidity position at the end of the evaluation period, which is fully determined by market prices, the range of their liquidity position, and the tokens supplied. Finally, we took the difference of their hypothetical counterfactual portfolio value without liquidity minting and their actual portfolio value at the end of the evaluation period, and divided this difference by the total dollar value of liquidity they supplied. This ratio is shown below.
 
 ![](./img/ape_imp_loss.png)
 
@@ -64,7 +68,7 @@ In general, given the steady uptrend in ApeCoin's price action, the duration tha
 
 Although there is substantial dispersion depending on exactly when liquidity positions were opened and closed, we see, as expected, that in the presence of strong directional price movement, keeping a liquidity position open for longer also results in greater impermanent loss.
 
-Were accrued trading fees sufficient to compensate for the severity of this impermanent loss? To answer this question, we derived basic estimates of the trading fees realized by each liquidity position. Within each 10-minute interval, we tabulated the liquidity positions which were open and in range as well as the total swap volume within that interval. We then applied the simplifying assumption that the trading fees (1% of volume) were distributed proportionally to all active liquidity positions on the basis of their market value.
+Were accrued trading fees sufficient to compensate for the severity of this impermanent loss? To answer this question, we derived basic estimates of the trading fees realized by each liquidity position. Within each 10-minute interval, we tabulated the liquidity positions which were open and in range as well as the total swap volume within that interval. We then applied the simplifying assumption that the trading fees (1% of volume) were distributed proportionally to all active liquidity positions on the basis of their market value. (Although this far from a perfect assumption, we suspect it does not qualitatively change the results.)
 
 ![](./img/ape_fees.png)
 
@@ -92,7 +96,9 @@ Out of nearly 1,700 liquidity positions studied, 86% were in profit, with the me
 
 Providing concentrated liquidity in Uniswap V3 comes with both benefits and risks. If the price stays within the prespecified range, the liquidity provider can collect trading fees with greater capital efficiency. However, if the price drifts far beyond the position's range, the liquidity provider faces the prospects of severe impermanent loss on a deactivated position that isn't even collecting any trading fees.
 
-It is illustrative to consider, as a point of comparison, how liquidity via the more classic *xy = k* model, implemented on Uniswap V2 and still effectively available in Uniswap V3 through setting a maximally wide range, would have fared. This model is far simpler to analyze, with the portfolio value scaling proportional to the square root of the risky asset (if we denominate using ETH or USDC as the numéraire). Suppose, hypothetically, that liquidity providers had all simply added ambient, *xy = k* liquidity instead of defining narrow concentrated positions. What would their returns have been?
+It is illustrative to consider, as a point of comparison, how liquidity via the more classic *xy = k* model, implemented on Uniswap V2 and still effectively available in Uniswap V3 through setting a maximally wide range, would have fared. This model is far simpler to analyze, with the portfolio value scaling proportional to the square root of the risky asset (if we denominate using ETH or USDC as the numéraire).
+
+Suppose, hypothetically, that liquidity providers had all simply added ambient, *xy = k* liquidity instead of defining narrow concentrated positions. What would their returns have been? We model ambient liquidity impermanent loss by taking the total market value (in USD) of all liquidity added into each liquidity position and assuming that the value of this liquidity position scales with the square root of ApeCoin prices over the same time period for which the actual, concentrated position was evaluated, which systematically underperforms an equivalent portfolio of assets held as individual tokens and not as a liquidity position. Hypothetical fees are calculated by taking the total trading volume in each time period, multiplying by the pool's fee rate, and splitting fees pro-rata across all open liquidity positions.
 
 We find, as shown below, that impermanent losses would have been substantially curtailed relative to the observed IL in the actual liquidity positions data:
 
@@ -102,7 +108,7 @@ Notably, the worst case of IL only loses 15% of the initial portfolio value, as 
 
 ![](./img/ape_hypo_returns.png)
 
-If all liquidity providers had provided ambient liquidity, a full 86% of positions would be in profit from the balance of fees vs. IL alone! This result strongly suggests that liquidity providers did not accurately estimate the extent of future price volatility or appreciation and therefore dramatically undersized the range of their liquidity positions.
+If all liquidity providers had provided ambient liquidity, a full 95% of positions would be in profit from the balance of fees vs. IL alone! This result strongly suggests that liquidity providers did not accurately estimate the extent of future price volatility or appreciation and therefore dramatically undersized the range of their liquidity positions.
 
 ## Positions going out of range
 
@@ -138,6 +144,16 @@ Finally, to explicitly compare the efficiency of collecting trading fees in the 
 
 We see that the fee accrual in the APE/ETH pool is slightly superior to fee accrual in the APE/USDC in terms of both consistency and absolute quantity of fees collected on average. However, the difference is fairly marginal, suggesting an implicit market for liquidity provisioning which keeps the fee-to-TVL ratios relatively similar between the two pools. Note that several different factors are implicitly included in this metric: trading volume, the amount of overall liquidity supplied, and the proportion of supplied liquidity which is actually in range.
 
+## Looking past the first 24 hours
+
+One caveat of the above analysis is that we restrict attention to the first 24 hours of ApeCoin trading. Because the price of ApeCoin increased substantially in the last half of this time period, this resulted in a high estimate of the impermanent loss suffered by liquidity positions that remained open at the end of the 24-hour period. Depending on the subsequent price action of ApeCoin, this impermanent loss could have been further exacerbated (if ApeCoin prices continued to increase) or reduced (if ApeCoin prices fell back to their original levels).
+
+We see that ApeCoin prices did in fact fall substantially over the course of the next 2 days:
+
+![](./img/ape_coingecko_updated.png)
+
+As such, liquidity positions which appeared to be in loss owing to IL at the end of the first 24 hours may have ended up back in profits as the price declined. That being said, liquidity positions which went out of range due to the price spike still missed out on capturing trading fees while the price of ApeCoin remained high, suggesting that even if they ultimately end up in profit, the range of their position was nevertheless far undersized.
+
 ## Conclusion
 
 Providing liquidity on Uniswap V3 requires a skillful balance of many disparate factors. The liquidity provider must make predictions about future price volatility and directionality and set an appropriate range for their concentrated liquidity position in order to maximize their capture of trading fees while minimizing their exposure to impermanent loss. When done adeptly, providing liquidity can be very profitable endeavor; when not, it can be risky and occasionally quite costly.
@@ -145,3 +161,5 @@ Providing liquidity on Uniswap V3 requires a skillful balance of many disparate 
 The benefits of concentrated liquidity are tremendous: Uniswap V3 allows for the replication of arbitrary distributions of liquidity over prices, with dramatically improved capital efficiency and superior swap execution. However, these results highlight the importance of further development in the field of concentrated liquidity DEXes. Future iterations on the model which provide greater guidance to liquidity providers and support the active monitoring and management of liquidity positions will lead the path forward to the growth of a healthy, self-sustaining ecosystem of liquidity provisioning, which is ultimately required for the long-term success of decentralized finance.
 
 We hope that you enjoyed this brief look at a recent, highly anticipated token launch. At CrocSwap, we are working on a series of posts analyzing concentrated liquidity positions on Uniswap V3 in greater detail. If you found this post interesting, please keep an eye out for our future articles in the very near future!
+
+— 0xfbifemboy
