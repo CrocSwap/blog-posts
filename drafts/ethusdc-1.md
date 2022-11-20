@@ -20,13 +20,13 @@ Our results for the ETH/USDC 0.3% pool suggest that LPs, especially smaller LPs,
 
 As previously mentioned, approximately $4.4 billion of liquidity is currently accessible through Uniswap V3 on Ethereum mainnet. However, most pools are very small, with a handful of top liquidity pools capturing the lion's share of that value:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/uniswap_mainnet_pools.png)
+![](./img/uniswap_mainnet_pools.png)
 
 To begin exploring the wealth of on-chain data, we retrieved the price and liquidity history of the pool with the highest TVL (ETH/USDC 0.3%). Because the state of the pool is always known, by keeping track of when new liquidity positions are minted, updated, or burned, we can straightforwardly interrogate the data to answer a number of basic questions.
 
 For example, at the time of this post's writing, the ETH/USDC 0.3% pool on mainnet has around 3.4k open liquidity positions. Taking a look at the size of these positions (as measured by the market value of added collateral at the time(s) liquidity was minted or added), it appears that the majority of liquidity positions are worth 3 to 5 figures:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_position_sizes_mainnetonly.png)
+![](./img/ethusdc_position_sizes_mainnetonly.png)
 
 In fact, out of these 3.5k positions, the vast majority (close to 80%) were minted with less than 10k of liquidity. However, the bulk of the liquidity in the pool (in dollar terms) resides in the remaining 20% of positions, some of which are individually worth millions of dollars each.
 
@@ -34,19 +34,19 @@ In fact, out of these 3.5k positions, the vast majority (close to 80%) were mint
 
 Notably, as of the time of this post's writing, only around 2k of these 3.5k open liquidity positions are actually in range—meaning that 41% of all Uniswap V3 positions on the largest liquidity pool are earning no trading fees whatsoever! More generally, we can ask: at each timepoint since the pool was created, what proportion of liquidity positions are active (*i.e.,* the price of ETH is inside the active range specified by the position's minter)? The plot below shows the time course of this position over the last eight months.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_positions_active_mainnetonly.png)
+![](./img/ethusdc_positions_active_mainnetonly.png)
 
 Immediately, we notice that in the first week of the pool's existence, the majority of liquidity positions are in range; however, over time, the proportion of in-range positions seems to fall dramatically, stabilizing at slightly above 50%. This result is naively quite unexpected, as liquidity which is completely out of range is not generating any fees for its owner, and the capital locked in those positions could be far better used elsewhere.
 
 One natural extension of this analysis is to see how the proportion of in-range positions varies with the price of ETH. In the plot below, these two time series have been overlaid on the same plot (with an arbitrary scaling factor of 0.01 applied to the ETH price for plotting):
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/eth_price_overlay.png)
+![](./img/eth_price_overlay.png)
 
 Periods of sudden price movement, such as the timepoints at the beginning of September 2021, appear to be associated with sharp reductions in the proportion of active positions, as expected. In addition, the run-up in price from October to mid-November appears to be correlated with a consistent decline in the proportion of active positions, which gradually reversed as the price of ETH fell from its all-time high over the following 3 months. Taken together, these data would appear to suggest that a great deal of the variation in the proportion of active positions is coming the price drifting in and out of range of "old" liquidity positions.
 
 Another natural question is to ask what proportion of liquidity *in dollar terms* is in-range at any given time. Because the gas cost of modifying a position is static regardless of size, it is intuitive to expect that smaller positions end up out of range more often than larger positions. Consequently, examining the proportion of active positions alone may understate the degree to which the volume of liquidity in the pool is utilized. The results of this calculation are shown below.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_positions_active_weightadj_mainnetonly.png)
+![](./img/ethusdc_positions_active_weightadj_mainnetonly.png)
 
 We performed this analysis by valuing liquidity at the market price of ETH at the time that liquidity was minted or added to a given position. This is not a perfect approximation, as the price of liquidity positions varies continuously over time; however, we believe it is a reasonable simplification to make.
 
@@ -56,13 +56,13 @@ Although the situation appears to be improved, there are several important point
 
 To further understand why positions become or stay out of range, we can directly examine the relationship between different variables, such as a liquidity position's age or value, and the propensity for an currently open liquidity position to be in or out of range.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_age_vs_activity.png)
+![](./img/ethusdc_age_vs_activity.png)
 
 The relationship between a position's age and its likelihood of being in range is admittedly fairly confounded by month-to-month variation in the price of ETH. For example, if the price increases and then decreases, then an older position minted at the original price may go out of range on the uptrend but end up back in range after the downtrend. However, if the price of ETH continues to steadily trend upward or downward over the course of multiple years, the number of out-of-range positions minted months or years ago will steadily accumulate.
 
 However, the relationship with position size is considerably stronger:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_size_vs_activity.png)
+![](./img/ethusdc_size_vs_activity.png)
 
 In general, larger liquidity positions are far more likely to be in range, consistent with our prior observations that the proportion of total liquidity in range is far greater than the proportion of distinct positions in range.
 
@@ -79,23 +79,23 @@ Using this criterion, we identify 957 JIT liquidity positions in the history of 
 
 As you can see, both of these transactions occurred in block [14408704](https://etherscan.io/txs?block=14408704). By paging through the list of transactions in the block, we can see that the liquidity mint and burn transactions surround a separate transaction, highlighted below:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/eth_jit_etherscan.png)
+![](./img/eth_jit_etherscan.png)
 
 The transaction sandwiched in between is [0x3ded4a5b908e88f2d3f80ecb021aaafd2167cec1da8ffd1eddd7ae9ecd7bd2f4](https://etherscan.io/tx/0x3ded4a5b908e88f2d3f80ecb021aaafd2167cec1da8ffd1eddd7ae9ecd7bd2f4), which includes, as expected, a very large swap of $365k USDC for 130 ETH:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/eth_jit_sandwiched_swap.png)
+![](./img/eth_jit_sandwiched_swap.png)
 
 We would expect this swap to generate approximately $1k of fees if completely routed through the 0.3% ETH/USDC pool. To confirm this, we examine the transaction in which the liquitiy position was burned. The difference between the tokens "removed" and the tokens "collected" represents the accrued fees, which amount to approximately $1k, as expected.
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/eth_jit_burn.png)
+![](./img/eth_jit_burn.png)
 
 To further validate this classification, we examine the extent to which the following assumptions hold: First, JIT positions should be very narrowly targeted, to allow the minter to capture as much of the trading fees generated by a target swap as possible. Second, JIT positions should be very *efficient* in generating fees relative to typical liquidity positions and with respect to the amount of time they remain active. Below, we show the distributions of the corresponding metrics (on a per-liquidity position basis).
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_fee_time_tickrange.png)
+![](./img/ethusdc_fee_time_tickrange.png)
 
 As expected, all of the single-block liquidity positions are targeted at a very narrow price range. Next, we study the distribution of fees captured by liquidity providers normalized by the duration of time that the liquidity position was active:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_fee_time_jit.png)
+![](./img/ethusdc_fee_time_jit.png)
 
 All of the single-block liquidity positions are extremely efficient at generating fees—no regular (non-JIT) positions even begin to come close. Together, these results suggest that our putative classification of single-block liquidity positions as JIT positions is accurate. Furthermore, the distribution of fees per active block shows the extent to which JIT positions are far more effective for fee generation than 'normal' liquidity provisioning; indeed, the distribution of JIT fee efficiency falls essentially completely outside the distribution of non-JIT fee efficiency.
 
@@ -108,7 +108,7 @@ Remarkably, even though the minting transactions originate from a variety of dif
 
 Between them, these two JIT bots have earned over $1.4 million in swap fees, not accounting for gas. 0xa57 in particular is quite [well known](https://twitter.com/wilburforce_/status/1418662736553291776?lang=en) for being a dominant supplier of JIT liquidity on Uniswap V3 in general, with $50 billion in total LP volume at the end of July 2021 (a figure which has likely grown many multiples since then). Although 0x979 is [no small fry](https://www.theblockcrypto.com/post/68791/dex-protocol-bancor-suffered-security-vulnerability-migrated-455k-worth-of-user-funds) themselves, looking at the number of JIT liquidity positions minted over time via each of the two addresses, we see that 0x979 simply *gave up* after November 2021:
 
-![](https://github.com/CrocSwap/uniswap-analysis/blob/main/posts/img/ethusdc_jit_by_addressmonth.png)
+![](./img/ethusdc_jit_by_addressmonth.png)
 
 Perhaps thankfully, the proportion of total fees accruing to JIT liquidity continues to remain quite low: $1.2 million is only a small fraction of the total fees generated by the pool over its entire history. However, over time, the presence of JIT bots will continue to serve as an ongoing disincentive to the provisioning of non-JIT liquidity, whether passively or actively managed.
 
