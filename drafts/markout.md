@@ -197,9 +197,25 @@ If we look at the actual frequency with which swaps arrive, there is no strong i
 
 All being said and done, it is important to note that remaining in a static fee tier is quite inefficient. As we have [pointed out](https://crocswap.medium.com/designing-a-dynamic-fee-policy-that-outperforms-all-uniswap-eth-usdc-pools-8948b0cc72ab) in prior work, a dynamic fee that toggles between different fee tiers based on statistical signals could help achieve substantial outperformance.
 
+## "Instantaneous" profitability of each swap
+
+Our discussion of liquidity provider PnL motivates the following, extremely simple question: Suppose that we only look at each swap on a purely individual basis. Someone buying ETH might mean that the LP is subject to adverse flow and that, taking into consideration future ETH buys, the LP is taking on losses relative to the price of ETH several minutes into the future; however, even if we set all of that aside, we should *at the very least* hope that the swap fee collected by a Uniswap liquidity provider is sufficiently high such that the LP is compensated for the price impact of the swap itself. If swaps are not *individually* profitable even if we completely ignore markout prices at future times, then we really have a problem on our handsーsuch a result would suggest that liquidity is deeply underpriced.
+
+Performing such an analysis, we find that the overall ETH/USDC pool remains unprofitable:
+
+![](./img/markout_final_cum.png)
+
+However, breaking out the cumulative PnL between the 0.05% and 0.3% fee tiers, we find that this is largely a function of the 0.05% pool's deep unprofitability:
+
+![](./img/markout_final_tiers.png)
+
+At the very least, the 0.3% pool (and probably also the 1% pool) is pricing liquidity sufficiently high such that swaps are profitable when viewed in purely atomic terms. That being said, as we have just seen, this is no guarantee of profitability when considering price movement *after* a swapーit is merely a sort of "lower bound" heuristic argument for determining which fee tiers are, in some sense, "too cheap."
+
 ## Using CEX data to calculate markout prices
 
-One problem with using Uniswap pool prices as markout prices is, essentially, that only takers can change prices on Uniswap. As Alexander Nezlobin ([@0x94305](https://twitter.com/0x94305)) and others have [pointed out](https://twitter.com/0x94305/status/1593672562630103040), this means that the pool price on Uniswap tends to "lag" the fair price of the asset: there is a cost associated with being a taker on a Uniswap pool (equal to the swap fee plus a fixed gas cost), and arbitrage only happens if the arbitrage profits are greater than the cost of the trade.
+How can we extend our analyses further? One potential avenue is to obtain a better estimate of the fair price of ETH at any given time.
+
+A major problem with using Uniswap pool prices as markout prices is, essentially, that only takers can change prices on Uniswap. As Alexander Nezlobin ([@0x94305](https://twitter.com/0x94305)) and others have [pointed out](https://twitter.com/0x94305/status/1593672562630103040), this means that the pool price on Uniswap tends to "lag" the fair price of the asset: there is a cost associated with being a taker on a Uniswap pool (equal to the swap fee plus a fixed gas cost), and arbitrage only happens if the arbitrage profits are greater than the cost of the trade.
 
 [Simulation analyses](https://twitter.com/0x94305/status/1593672567281229824) from [@0x94305](https://twitter.com/0x94305) indicate that this effect leads to an overestimation of LP profits when markout periods as low as 5 minutes are used:
 
@@ -215,7 +231,7 @@ Interestingly, we can improve upon this scenario and potentially retain both the
 
 For these reasons, we typically expect the spot price of ETH on Binance to be a more accurate and less biased measure of the fair price of ETH than the Uniswap pool price.
 
-Consequently, we downloaded all 1-minute candles on the ETH/BUSD spot market from Binance (referred to as [K-lines](https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data) in the Binance API) from August 1, 2021 onward. We use the average of the opening and closing price of each candle to calculate markout prices.
+Consequently, we downloaded all 1-minute candles on the ETH/BUSD spot market from Binance (referred to as [K-lines](https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data) in the Binance API) from August 1, 2021 onward. We use the opening price and timestamp of each candle to calculate markout prices.
 
 Doing so, we see that using markouts from Binance data actually provide *worse* estimates of LP profitability compared to both the original Dune analysis and our revised analysis:
 
@@ -226,20 +242,6 @@ Continuing to use 5-minute markouts, we find that when the markout price is esti
 ![](./img/markout_binance_5m_tiers.png)
 
 This is not an artifact of the specific markout period used, either: longer markout periods (10 minutes, 1 hour, *etc.*) all yield consistent results. Although on long time horizons the adverse effect of unhedged delta exposure dominates cumulative PnL, using Binance data to calculate markout prices yields a pessimistic estimate of LP profitability in which no fee tier is net profitable over the course of the last year.
-
-## "Instantaneous" profitability of each swap
-
-Our discussion of liquidity provider PnL motivates the following question: Suppose that we only look at each swap on a purely individual basis. Someone buying ETH might mean that the LP is subject to adverse flow and that, taking into consideration future ETH buys, the LP is taking on losses relative to the price of ETH several minutes into the future; however, even if we set all of that aside, we should *at the very least* hope that the swap fee collected by a Uniswap liquidity provider is sufficiently high such that the LP is compensated for the price impact of the swap itself. If swaps are not *individually* profitable even if we completely ignore markout prices at future times, then we really have a problem on our handsーsuch a result would suggest that liquidity is deeply underpriced.
-
-Performing such an analysis, we find that the overall ETH/USDC pool remains unprofitable:
-
-![](./img/markout_final_cum.png)
-
-However, breaking out the cumulative PnL between the 0.05% and 0.3% fee tiers, we find that this is largely a function of the 0.05% pool's deep unprofitability:
-
-![](./img/markout_final_tiers.png)
-
-At the very least, the 0.3% pool (and probably also the 1% pool) is pricing liquidity sufficiently high such that swaps are profitable when viewed in purely atomic terms.
 
 ## Normalizing by the amount of active liquidity
 
@@ -259,16 +261,44 @@ We therefore modified the 5-minute markout analysis using Binance spot prices by
 
 It is notable that even after adjusting for pool TVL, it appears that the 0.05% pool is still accruing much greater losses than the 0.3% pool, reinforcing our belief that the 0.05% pool is underpricing liquidity. Additionally, there is a subtle but crucially important phenomenon which shows up after this normalization: Although the cumulative PnLs move in correlated directions, there are often times when the cumulative PnL of the 0.3% pool goes up much more than the cumulative PnL of the 0.05% pool (and vice versa)! This directly suggests that a strategy that *toggles* between fee tiers intelligently, as [discussed](https://crocswap.medium.com/why-use-a-dynamic-fee-for-liquidity-pools-def07a1e6c3b) at length in our prior research, could in fact deliver positive cumulative PnL to liquidity providers even if staying in a static fee tier is net unprofitable over long time horizons. Such a dynamic fee could be a crucial step in developing systems that facilitate the sustainable provision of on-chain liquidity.
 
+## Change in final PnL using different markout periods
+
+Thus far, we have started with a straightforward Dune query on Uniswap data and applied, in turn, the following adjustments:
+
+* Calculating markout prices differently, first by using the price of the liquidity pool itself and, afterward, by using Binance ETH/BUSD 1-minute candle opening prices
+* Normalizing PnL of each swap by the number of liquidity units active at that time
+
+Previously, we briefly considered, in theoretical terms, the question of what an "optimal markout duration" constitutes. We argued that the markout duration should be as long as necessary to capture microstructural features of the asset's relevant markets, but beyond that, as short as possible in order to minimize exposure to unhedged deltas in an AMM liquidity setting. At the same time, though, others might argue differently; for example, some have commented that the markout period should actually reflect the average LP's length of stay in the Uniswap liquidity pool, and that in this context it is proper and appropriate to consider the impact of unhedged deltas over time.
+
+We hesitate to make overly strong claims about the "best" or the "ideal" choice, recognizing that different perspectives may lead readers to prefer different choices of markout periods. That being said, we feel it is informative to compare how the cumulative PnL at the end of the evaluation period changes as we increase the markout period from 1 second all the way to 24 hours. For example, in the case of the entire set of Uniswap ETH/USDC pools, we see that the differences between various analysis methodologies appear to converge to nearly zero as delta exposure comes to dominate the cumulative PnL:
+
+![](./img/markout_over_time_cum.png)
+
+It is perhaps a little surprising that the difference in cumulative PnL between the "original" and "new" analyses (which respectively calculate markout price using the average or final price of the last swap in the markout period) diminishes over time. This may reflect some distributional quality of the swap flow, for example, perhaps small swaps are likely to be followed by small swaps, and large swaps are likely to be followed by large swaps; if this were the case, then as the markout period increases, we expect such effects to wash out and for the difference between the cumulative PnLs of the two analyses to converge to a fixed value. However, we did not explore the exact cause in detail, as we feel that the "new" analysis (using final price rather than average price of the last swap) is strictly methodologically preferred to the original analysis.
+
+We may also reasonably ask how the same graph of cumulative PnL looks when we separate out different fee tiers and normalize for active liquidity units within each one. For example, with the 0.05% fee tier, it is very clearly and consistently unprofitable at approximately the same numerical level for all markout periods from 8 minutes onward to 20 hours, after which it declines substantially:
+
+![](./img/markout_over_time_5.png)
+
+A qualitatively similar pattern is observed with the 0.3% pool, where markouts between 10 minutes and 8 hours are relatively stable at near zero (actually a somewhat more optimistic result than our findings with 5-minute markouts!):
+
+![](./img/markout_over_time_30.png)
+
+It is not strictly obvious how to interpret these results. However, one could plausibly argue that properly taking into account fluctuations in the amount of liquidity active at any given time, and therefore arriving at PnL values that represent the profits or losses of a liquidity provider that stays in the pool with a constant amount of active liquidity over the course of a long period of time, yields cumulative markout PnLs that strongly suggest that microstructural effects, adverse flow, *etc.* are mostly accounted for after 5 minutes, and almost entirely accounted for after 10 minutes, resulting in PnLs that are relatively stable until markouts periods reach durations long enough to allow the accumulation of significant amounts of unhedged deltas, around 8 hours or longer.
+
+This is actually the most optimistic picture for LP profitability we have arrived at thus far! In this framing of the problem, while it remains clear that liquidity providers in the 0.05% pool are taking on substantial losses (the question is really just one of exactly *how large* these losses are), there are reasonable settings (*e.g.,* rehedging deltas every 30 minutes or so but keeping the number of active liquidity units constant) in which LPs in the 0.3% pool come out, if not clearly in the black, then at least relatively close to break-even. 
+
 ## Conclusion
 
 To summarize, we have made the following observations:
 
-* The original analysis from [@thiccythot_](https://twitter.com/thiccythot_) underestimates LP profitability
-* When the instantaneous pool price is used to calculate markouts, estimates of LP profitability increase, with some fee tiers moving into net profitability
-* However, when Binance spot data is used to calculate markouts (arguably providing a less biased estimate of fair price), we obtain very pessimistic estimates of LP profitability
+* The original analysis from [@thiccythot_](https://twitter.com/thiccythot_) can arguably be improved by using pool prices as markout prices, which tends to increase estimates of LP profitability
+* When the pool price is used to calculate markouts, estimates of LP profitability increase, with some fee tiers moving into net profitability when using 5-minute markouts
+* If we mark eachs swap to its final marginal price, we obtain fairly conclusive evidence that the 0.05% fee tier is almost certainly underpricing liquidity; as most swap volume flows to the liquidity there, it is responsible for the majority of losses accruing to Uniswap LPs
+* When we use Binance spot data is used to calculate markouts (arguably providing a less biased estimate of fair price), we obtain very pessimistic estimates of LP profitability, where no fee tier appears to be profitable at 5-minute markouts
 * Longer markout periods intrinsically bias LP profits downward due to accumulation of unhedged delta exposure; therefore, even despite the fact that using Binance spot data for markouts yields worse estimates of LP profitability, the overall situation is arguably not nearly as bad as the original estimate of $100 million in losses would suggest
-* By marking each AMM swap to its final price, we obtain fairly conclusive evidence that the 0.05% fee tier is almost certainly underpricing liquidity; as most swap volume flows to the liquidity there, it is responsible for the majority of losses accruing to Uniswap LPs
 * We can estimate the cumulative PnL of an average unit of liquidity, rather than the entire pool; doing so, we find that cumulative PnL is still weakly negative across fee tiers, but uncover patterns which suggest the viability of a dynamic fee strategy
+* If we look at how cumulative PnL varies with length of markout period in different settings (varying the analysis methodology, separating out fee tiers, and normalizing by active liquidity), empirical patterns suggest that markout periods of perhaps 5-10 minutes, and certainly 20+ minutes, are more than enough to capture relevant microstructural features without excess delta exposure, and that LPs in the 0.3% pool may in principle come out reasonably close to breakeven in specific framings
 
 Quite a rollercoaster of different findings!
 
